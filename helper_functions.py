@@ -1,3 +1,7 @@
+from Bio.Align import substitution_matrices
+
+blosum62 = substitution_matrices.load("BLOSUM62")
+
 def global_alignment(seq1, seq2, scoring_function):
     """Global sequence alignment using the Needleman–Wunsch algorithm.
 
@@ -28,8 +32,14 @@ def global_alignment(seq1, seq2, scoring_function):
     Other alignments are not possible.
 
     """
+
     raise NotImplementedError()
 
+def scoring_function(a, b):
+    if a == "-" or b == "-":
+        return -5.0
+
+    return float(blosum62[a, b])
 
 def local_alignment(seq1, seq2, scoring_function):
     """Local sequence alignment using the Smith-Waterman algorithm.
