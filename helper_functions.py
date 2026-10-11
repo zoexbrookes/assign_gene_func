@@ -1,7 +1,3 @@
-from Bio.Align import substitution_matrices
-
-blosum62 = substitution_matrices.load("BLOSUM62")
-
 def global_alignment(seq1, seq2, scoring_function):
     """Global sequence alignment using the Needleman–Wunsch algorithm.
 
@@ -33,13 +29,88 @@ def global_alignment(seq1, seq2, scoring_function):
 
     """
 
-    raise NotImplementedError()
+    n = len(seq1)
+    m = len(seq2)
 
-def scoring_function(a, b):
-    if a == "-" or b == "-":
-        return -5.0
+    dp = [[0.0 for j in range(m + 1)] for i in range(n + 1)]
 
-    return float(blosum62[a, b])
+    traceback = [[0 for j in range(m + 1)] for i in range(n + 1)]
+
+    for i in range(1, n + 1):
+        dp[i][0] = dp[i - 1][0] + scoring_function(seq1[i - 1], "-")
+        traceback[i][0] = 1
+
+    for j in range(1, m + 1):
+        dp[0][j] = dp[0][j - 1] + scoring_function("-", seq2[j - 1])
+        traceback[0][j] = 2
+
+    for i in range(1, n + 1):
+        for j in range(1, m + 1):
+
+            diagonal = (
+                dp[i - 1][j - 1]
+                + scoring_function(seq1[i - 1], seq2[j - 1])
+            )
+
+            up = (
+                dp[i - 1][j]
+                + scoring_function(seq1[i - 1], "-")
+            )
+
+            left = (
+                dp[i][j - 1]
+                + scoring_function("-", seq2[j - 1])
+            )
+
+            scores = [diagonal, up, left]
+
+            best_direction = max(range(3), key=lambda k: scores[k])
+
+            dp[i][j] = scores[best_direction]
+            traceback[i][j] = best_direction
+
+    aligned1 = []
+    aligned2 = []
+
+    i = n
+    j = m
+
+    while i > 0 or j > 0:
+
+        direction = traceback[i][j]
+
+        if direction == 0:
+            aligned1.append(seq1[i - 1])
+            aligned2.append(seq2[j - 1])
+            i -= 1
+            j -= 1
+
+        elif direction == 1:
+            aligned1.append(seq1[i - 1])
+            aligned2.append("-")
+            i -= 1
+
+        else:
+            aligned1.append("-")
+            aligned2.append(seq2[j - 1])
+            j -= 1
+
+    aligned1 = "".join(reversed(aligned1))
+    aligned2 = "".join(reversed(aligned2))
+
+    return aligned1, aligned2, float(dp[n][m])
+
+seq1 = "abracadabra"
+seq2 = "dabarakadara"
+
+result = global_alignment(
+    seq1,
+    seq2,
+    lambda x, y: [-1, 1][x == y]
+)
+
+print(result)
+
 
 def local_alignment(seq1, seq2, scoring_function):
     """Local sequence alignment using the Smith-Waterman algorithm.
@@ -73,6 +144,13 @@ def local_alignment(seq1, seq2, scoring_function):
     """
     raise NotImplementedError()
 
+def scoring_function(a, b):
+    from Bio.Align import substitution_matrices
+    blosum62 = substitution_matrices.load("BLOSUM62")
+    if a == "-" or b == "-":
+        return -5.0
+
+    return float(blosum62[a, b])
 
 ## This is an example scoring function, you should implement a version which uses a scoring matrix 
 def scoring_function_simple(aa_i,aa_j):
