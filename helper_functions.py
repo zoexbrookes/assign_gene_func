@@ -178,7 +178,7 @@ def local_alignment(seq1, seq2, scoring_function):
     i = max_i
     j = max_j
 
-    while i > 0 or j > 0:
+    while i > 0 and j > 0 and dp[i][j] > 0.0:
 
         direction = traceback[i][j]
 
