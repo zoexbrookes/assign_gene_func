@@ -100,18 +100,6 @@ def global_alignment(seq1, seq2, scoring_function):
 
     return aligned1, aligned2, float(dp[n][m])
 
-seq1 = "abracadabra"
-seq2 = "dabarakadara"
-
-result = global_alignment(
-    seq1,
-    seq2,
-    lambda x, y: [-1, 1][x == y]
-)
-
-print(result)
-
-
 def local_alignment(seq1, seq2, scoring_function):
     """Local sequence alignment using the Smith-Waterman algorithm.
 
@@ -152,7 +140,36 @@ def scoring_function(a, b):
 
     return float(blosum62[a, b])
 
-## This is an example scoring function, you should implement a version which uses a scoring matrix 
-def scoring_function_simple(aa_i,aa_j):
-    score = [-1, 1][aa_i == aa_j]
-    return (score)
+def get_sequence_from_accession(accession_code):
+    """Get a sequence from an accession code.
+
+    Parameters
+    ----------
+    accession_code: str
+        Accession code of the sequence to be retrieved.
+
+    Returns
+    -------
+    record: str
+        Sequence corresponding to the accession code.
+
+    Examples
+    --------
+    >>> get_sequence_from_accession("NC_045512.2")
+    'ATTAAAGGTTTATACCTTCCCAGGTAACAAACCAACCAACTTTCGATCTCTTGTAGATCTGTTCTCTAAA...'
+
+    """
+    from Bio import Entrez, SeqIO
+
+    Entrez.email = "z.brookes@student.unsw.edu.au"
+
+    with Entrez.efetch(
+        db="nucleotide",
+        id=accession_code,
+        rettype="fasta",
+        retmode="text"
+    ) as handle:
+        record = SeqIO.read(handle, "fasta")
+        
+    return str(record.seq)[21562:25384]
+    
